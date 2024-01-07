@@ -132,3 +132,4 @@ dmypy.json
 *.ipynb
 memo.txt
 /assets
+/chroma

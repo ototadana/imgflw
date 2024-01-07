@@ -1,0 +1,1 @@
+UPSCALER = "RealESRGAN x4+"

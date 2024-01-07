@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from imgflw.entities import DebugImage, Image, Rect
+from imgflw.entities import DebugImage, Image, Rect, default
 from imgflw.usecase import FrameEditor
 from imgflw.usecase.image_processing_util import resize
 
@@ -18,7 +18,7 @@ class ResizeTool(FrameEditor):
         scale: float = None,
         width: int = 512,
         height: int = None,
-        upscaler: str = "RealESRGAN x4+",
+        upscaler: str = default.UPSCALER,
         **kwargs,
     ) -> Tuple[Image, Image]:
         w, h = self.__get_size(scale, width, height, image)

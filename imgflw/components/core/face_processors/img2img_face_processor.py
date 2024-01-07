@@ -1,7 +1,7 @@
 from typing import List
 
 from imgflw.components.core.frame_editors.img2img_tool import Img2ImgTool
-from imgflw.entities import DebugImage, Face
+from imgflw.entities import DebugImage, Face, default
 from imgflw.usecase import FaceProcessor
 from imgflw.usecase.image_processing_util import resize, rotate
 
@@ -25,9 +25,9 @@ class Img2ImgFaceProcessor(FaceProcessor):
         strength: float = 0.4,
         img2img_size: int = 512,
         seed: int = 2,
-        steps: int = 1,
+        steps: int = 20,
         ignore_larger_faces=False,
-        upscaler: str = "RealESRGAN x4+",
+        upscaler: str = default.UPSCALER,
         **kwargs,
     ) -> None:
         if ignore_larger_faces and face.width > img2img_size:
@@ -52,5 +52,5 @@ class Img2ImgFaceProcessor(FaceProcessor):
 
         if intermediate_steps is not None:
             intermediate_steps.append(
-                DebugImage(face.face_image, bottom_message=f"Prompt: {prompt}", top_message=f"Strength: {strength}")
+                DebugImage(face.face_image, bottom_message=f"Prompt: {pp}", top_message=f"Strength: {strength}")
             )

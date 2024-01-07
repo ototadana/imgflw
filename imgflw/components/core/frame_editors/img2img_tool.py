@@ -4,7 +4,7 @@ from typing import List, Tuple
 import torch
 from diffusers import AutoPipelineForImage2Image
 
-from imgflw.entities import DebugImage, Image, Rect
+from imgflw.entities import DebugImage, Image, Rect, default
 from imgflw.usecase import FrameEditor, Settings
 from imgflw.usecase.image_processing_util import resize
 from imgflw.usecase.mask_generator import MaskGenerator
@@ -29,12 +29,12 @@ class Img2ImgTool(FrameEditor):
         np: str = "",
         prompt: str = "",
         negative_prompt: str = "",
-        strength: float = 0.4,
+        strength: float = 0.3,
         no_mask: bool = False,
         img2img_size: int = 512,
         seed: int = 2,
-        steps: int = 1,
-        upscaler: str = "RealESRGAN x4+",
+        steps: int = 20,
+        upscaler: str = default.UPSCALER,
         **kwargs,
     ) -> Tuple[Image, Image]:
         if strength == 0:
@@ -64,7 +64,7 @@ class Img2ImgTool(FrameEditor):
             masked_image = MaskGenerator.to_masked_image(mask_image.array, image.array)
             intermediate_steps.append(DebugImage(masked_image, bottom_message="img2img mask"))
             intermediate_steps.append(
-                DebugImage(image, bottom_message=f"Prompt: {prompt}", top_message=f"Strength: {strength}")
+                DebugImage(image, bottom_message=f"Prompt: {pp}", top_message=f"Strength: {strength}")
             )
 
         return image, mask_image
