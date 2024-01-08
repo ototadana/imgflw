@@ -7,7 +7,7 @@ import gradio as gr
 from PIL import Image as PILImage
 from pydantic import ValidationError
 
-from imgflw.entities import Config, Status
+from imgflw.entities import Config, Status, default
 from imgflw.usecase import Settings, WorkflowGenerator, WorkflowStore
 from imgflw.usecase.image_processor import ImageProcessor
 
@@ -105,7 +105,7 @@ class UIBuilder:
         return error
 
     def generate_and_validate_workflow(self, request: str, workflow: str, save: bool = False):
-        self.status = None
+        self.status = Status()
         self.error_message = None
         self.intermediate_steps = None
 
@@ -142,16 +142,19 @@ class UIBuilder:
         self.store.save(request, workflow)
 
     def edit(self, request: str, workflow: str, image: PILImage.Image):
+        if self.status is not None and self.status.canceled:
+            return image, gr.TextArea("Canceled", visible=True)
+
         self.status = Status()
         if self.error_message:
             return None, gr.TextArea(self.error_message, visible=True)
 
         config = Config(
-            model=Settings.get("model"),
+            model=Settings.get("model", default.IMG2IMG_MODEL),
             prompt=Settings.get("prompt"),
             negative_prompt=Settings.get("negative_prompt"),
-            use_minimal_area=Settings.get("use_minimal_area"),
-            img2img_size=Settings.get("img2img_size"),
+            use_minimal_area=Settings.get("use_minimal_area", False),
+            img2img_size=Settings.get("img2img_size", default.IMG2IMG_SIZE),
         )
 
         img = image
@@ -160,6 +163,8 @@ class UIBuilder:
         try:
             if image is not None:
                 output_img = ImageProcessor().process(image, workflow, config, self.status)
+            if self.status.canceled:
+                self.error_message = "Canceled"
         except Exception as e:
             self.error_message = f"{str(e)}\n\n{traceback.format_exc()}"
         error = gr.TextArea(self.error_message, visible=self.error_message is not None)
@@ -223,7 +228,8 @@ class UIBuilder:
         return self.intermediate_steps
 
     def cancel(self):
-        self.status.canceled = True
+        if self.status is not None:
+            self.status.canceled = True
         return gr.Button(visible=True), gr.Button(visible=False)
 
     def undo(self):
@@ -303,14 +309,16 @@ class UIBuilder:
                         openai_api_key = gr.Textbox(label="OpenAI API Key", value=Settings.get("openai_api_key"))
                     with gr.Column():
                         gr.Markdown("##### Workflow Processor")
-                        model = gr.Textbox(label="Model", value=Settings.get("model"))
+                        model = gr.Textbox(label="Model", value=Settings.get("model", default.IMG2IMG_MODEL))
                         prompt = gr.Textbox(label="Prompt", value=Settings.get("prompt"))
                         negative_prompt = gr.Textbox(label="Negative prompt", value=Settings.get("negative_prompt"))
                         use_minimal_area = gr.Checkbox(
-                            label="Use minimal area (for close faces)", value=Settings.get("use_minimal_area")
+                            label="Use minimal area (for close faces)", value=Settings.get("use_minimal_area", False)
                         )
                         img2img_size = gr.Dropdown(
-                            label="Img2img size", choices=[512, 1024], value=Settings.get("img2img_size")
+                            label="Img2img size",
+                            choices=[512, 1024],
+                            value=Settings.get("img2img_size", default.IMG2IMG_SIZE),
                         )
                 with gr.Row():
                     save_settings_button = gr.Button(value="💾 Save", scale=0, size="lg", variant="primary")
