@@ -132,19 +132,35 @@ class Rule(ExtraBaseModel):
 
 
 class Workflow(ExtraBaseModel):
-    face_detector: Union[Worker, List[Worker]]
-    rules: Optional[Union[Rule, List[Rule]]] = []
+    face_detectors: Optional[Union[Worker, List[Worker]]] = []
+    processing_rules: Optional[Union[Rule, List[Rule]]] = []
     preprocessors: Optional[Union[Worker, List[Worker]]] = []
     postprocessors: Optional[Union[Worker, List[Worker]]] = []
 
-    @validator("face_detector", pre=True)
+    @classmethod
+    def _alias_to_actual(cls, values, actual, aliases):
+        for alias in aliases:
+            if alias in values:
+                values[actual] = values[alias]
+                del values[alias]
+        return values
+
+    @root_validator(pre=True)
+    def alias_to_actual(cls, values):
+        values = cls._alias_to_actual(values, "face_detectors", ["face_detector", "detectors", "detector"])
+        values = cls._alias_to_actual(values, "processing_rules", ["rules", "face_processing_rules", "face_rules"])
+        return values
+
+    @validator("face_detectors", pre=True)
     def parse_detectors(cls, value):
-        if isinstance(value, List):
+        if value is None:
+            return []
+        elif isinstance(value, List):
             return [parse_worker_field(item) for item in value]
         else:
             return [parse_worker_field(value)]
 
-    @validator("rules", pre=True)
+    @validator("processing_rules", pre=True)
     def wrap_rule_in_list(cls, value):
         if value is None:
             return []

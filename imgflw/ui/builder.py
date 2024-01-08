@@ -1,7 +1,6 @@
 import json
 import traceback
 import uuid
-from collections import OrderedDict
 from typing import List
 
 import gradio as gr
@@ -11,29 +10,6 @@ from pydantic import ValidationError
 from imgflw.entities import Config, Status
 from imgflw.usecase import Settings, WorkflowGenerator, WorkflowStore
 from imgflw.usecase.image_processor import ImageProcessor
-
-
-class LRU:
-    def __init__(self, items: List[str] = [], capacity: int = 20) -> None:
-        self.capacity = capacity
-        self.cache = OrderedDict()
-        self.put_all(items)
-
-    def put(self, key: str) -> None:
-        if not key:
-            return
-        if key in self.cache:
-            self.cache.move_to_end(key)
-        self.cache[key] = key
-        if len(self.cache) > self.capacity:
-            self.cache.popitem(last=False)
-
-    def put_all(self, items: List[str]) -> None:
-        for item in items:
-            self.put(item)
-
-    def items(self) -> List[str]:
-        return [key for key in self.cache.keys()]
 
 
 class ImageInfo:
@@ -219,7 +195,6 @@ class UIBuilder:
         info = ImageInfo(image)
         self.history.put(info)
         return (
-            info.request,
             gr.Button(interactive=image is not None),
             self.get_undo_button(),
             self.get_redo_button(),
@@ -228,7 +203,7 @@ class UIBuilder:
         )
 
     def change_request(self, request: str):
-        return self.store.get(request)
+        return request, self.store.get(request)
 
     def input_request(self, request: str):
         if not request or len(request) < 2:
@@ -253,8 +228,9 @@ class UIBuilder:
 
     def undo(self):
         self.status = None
+        current = self.history.peek()
         item = self.history.undo()
-        return item.request, item.workflow, item.image
+        return current.request, current.workflow, item.image
 
     def redo(self):
         self.status = None
@@ -264,7 +240,12 @@ class UIBuilder:
     def clear_image(self):
         self.status = None
         self.history.clear()
-        return gr.Image(value=None, interactive=True)
+        return (
+            gr.Image(value=None, interactive=True),
+            gr.Button(interactive=False),
+            gr.Button(interactive=False),
+            gr.Button(interactive=False),
+        )
 
     def build(self) -> gr.Blocks:
         with gr.Blocks(title="ImageFlow") as blocks:
@@ -337,12 +318,15 @@ class UIBuilder:
             request.input(
                 fn=self.input_request, inputs=[request], outputs=[requests, workflow], trigger_mode="always_last"
             )
-            requests.select(fn=self.change_request, inputs=[requests], outputs=[workflow])
+
+            requests.select(fn=self.change_request, inputs=[requests], outputs=[request, workflow])
+
             input_img.change(
                 fn=self.change_image,
                 inputs=[input_img],
-                outputs=[request, edit_button, undo_button, redo_button, input_img, clear_image_button],
+                outputs=[edit_button, undo_button, redo_button, input_img, clear_image_button],
             )
+
             edit_button.click(
                 fn=self.setup_buttons,
                 outputs=[edit_button, cancel_button],
@@ -363,7 +347,9 @@ class UIBuilder:
 
             undo_button.click(fn=self.undo, outputs=[request, workflow, input_img])
             redo_button.click(fn=self.redo, outputs=[request, workflow, input_img])
-            clear_image_button.click(fn=self.clear_image, outputs=[input_img])
+            clear_image_button.click(
+                fn=self.clear_image, outputs=[input_img, clear_image_button, undo_button, redo_button]
+            )
             clear_workflow_button.click(
                 fn=lambda: ("", gr.TextArea("", visible=False)), outputs=[workflow, error_message]
             )

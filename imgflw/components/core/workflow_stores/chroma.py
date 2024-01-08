@@ -28,7 +28,7 @@ class ChromaWorkflowStore(WorkflowStore):
             )
         return self.workflow_collection
 
-    def get_embedding_cache(self) -> chromadb.Collection:
+    def get_embeddings_cache(self) -> chromadb.Collection:
         if self.embeddings_cache is None:
             self.get_workflow_collection()
         return self.embeddings_cache
@@ -58,13 +58,13 @@ class ChromaWorkflowStore(WorkflowStore):
         documents = results["documents"]
         if len(documents) == 0:
             return []
-        distances = [f"{d:.2f}" for d in results["distances"][0]]
-        print(request, distances)
+        # distances = [f"{d:.2f}" for d in results["distances"][0]]
+        # print(request, distances)
         return documents[0]
 
     def get_embeddings(self, request: str) -> chromadb.Embeddings:
         id = self.to_id(request)
-        embedding_collection = self.get_embedding_cache()
+        embedding_collection = self.get_embeddings_cache()
         result = embedding_collection.get(ids=[id], include=["embeddings"])
         embeddings = result["embeddings"]
         if len(embeddings) == 0:

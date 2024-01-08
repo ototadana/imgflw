@@ -1,8 +1,3 @@
-# Role
-- This assistant serves as a tool for creating workflow definitions (in JSON format) for image editing.
-- Workflow definitions must strictly adhere to the following "OpenAPI Schema Specification for Workflow" format.
-
-```yaml
 openapi: 3.0.0
 info:
   title: Workflow JSON Reference
@@ -90,11 +85,22 @@ components:
       properties:
         when:
           description: |
-            Conditions for applying the rule. Specifies faces to be processed based on `tag` and `criteria`.
+            Conditions for applying the rule. Specifies faces to be processed based on `criteria` and `tag`.
             If the 'when' section is omitted and only the 'then' section is specified, the rule is applied to all targets not processed by other rules with 'when' conditions. This functions as a fallback mechanism.
             Therefore, if you want to process all faces, you do not need to specify this property.
           type: object
           properties:
+            criteria:
+              description: |
+                Determines the faces to be processed based on position or size.
+                Position options include 'left', 'right', 'center', 'top', 'middle', 'bottom', and size options include 'small', 'large'.
+                The format is: `{position or size}:{index or index range}`.
+                The index is specified using only numbers. For example, `left:0` processes the face furthest to the left.
+                An index range is specified with two indices separated by a `-`. For example, `left:0-2` processes the three faces furthest to the left.
+                If neither an index nor an index range is specified, the index is treated as `0`. For example, `left` processes the face furthest to the left.
+
+                **Important:** Do not specify `criteria` unless there are special requirements.
+              type: string
             tag:
               description: |
                 Specifies a tag corresponding to the type of detected face.
@@ -106,17 +112,6 @@ components:
                 - Logical operators are as follows: `&`, `|`
 
                 **Important:** Do not specify `tag` unless there are special requirements.
-              type: string
-            criteria:
-              description: |
-                Determines the faces to be processed based on position or size.
-                Position options include 'left', 'right', 'center', 'top', 'middle', 'bottom', and size options include 'small', 'large'.
-                The format is: `{position or size}:{index or index range}`.
-                The index is specified using only numbers. For example, `left:0` processes the face furthest to the left.
-                An index range is specified with two indices separated by a `-`. For example, `left:0-2` processes the three faces furthest to the left.
-                If neither an index nor an index range is specified, the index is treated as `0`. For example, `left` processes the face furthest to the left.
-
-                **Important:** Do not specify `criteria` unless there are special requirements.
               type: string
           additionalProperties: false
         then:
@@ -649,4 +644,3 @@ Assistant:
     }
   ]
 }
-```

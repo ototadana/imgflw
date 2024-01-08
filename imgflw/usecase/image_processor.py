@@ -134,7 +134,7 @@ class ImageProcessor:
     def __select_rule(self, workflow: Workflow, faces: List[Rect], index: int, width: int, height: int) -> Rule:
         face = faces[index]
 
-        rules = workflow.rules if workflow.rules is not None else []
+        rules = workflow.processing_rules if workflow.processing_rules is not None else []
         for rule in rules:
             if rule.when is None:
                 return rule
@@ -144,11 +144,11 @@ class ImageProcessor:
         return None
 
     def __validate_workflow(self, workflow: Workflow):
-        for face_detector in workflow.face_detector:
+        for face_detector in workflow.face_detectors:
             if not registry.has_face_detector(face_detector.name):
                 raise KeyError(f"face_detector `{face_detector.name}` does not exist")
 
-        rules = workflow.rules if workflow.rules is not None else []
+        rules = workflow.processing_rules if workflow.processing_rules is not None else []
         for rule in rules:
             for job in rule.then:
                 if not registry.has_face_processor(job.face_processor.name):
@@ -174,7 +174,7 @@ class ImageProcessor:
     def __detect_faces(self, workflow: Workflow, image: Image, config: Config, status: Status) -> List[Rect]:
         results = []
 
-        for fd in workflow.face_detector:
+        for fd in workflow.face_detectors:
             face_detector = registry.get_face_detector(fd.name)
             params = config.model_dump().copy()
             params.update(fd.params)
