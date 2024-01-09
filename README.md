@@ -3,6 +3,29 @@ A demo application for image editing using LLM.
 
 ![demo](./readme-images/demo-01.webp)
 
+## imgflw Application Processing Flow
+```mermaid
+sequenceDiagram
+    participant User
+    participant imgflw as imgflw<br/>(Application)
+    participant OpenAI_Embed as OpenAI<br/>Embedding API
+    participant OpenAI_TextGen as OpenAI<br/>Text Generation API
+    participant Chroma as Chroma<br/>Vector Store
+    participant FaceEditor as Image Processing<br/>Components
+
+    User->>imgflw: 1. Input request
+    imgflw->>OpenAI_Embed: 2. Convert request to embedding
+    imgflw->>Chroma: 3. Search in Chroma
+    alt Similar request exists in Chroma
+        Chroma-->>imgflw: 4a. Retrieve corresponding workflow definition (JSON)
+    else No similar request in Chroma
+        imgflw->>OpenAI_TextGen: 4b. Generate new workflow definition (JSON)
+    end
+    imgflw->>FaceEditor: 5. Process image using workflow definition
+```
+
+- [OpenAPI Schema Specification for Workflow](./imgflw/components/core/workflow_generators/workflow.yml)
+
 ## Installation and Launch
 Clone this repository:
 
@@ -43,27 +66,6 @@ Once the interface appears in the browser, switch to the "Settings" tab. Enter y
 2. Describe how you want to edit the image in "Input your request here:" and click "Edit".
   ![Edit](./readme-images/step-02.png)
 
-## imgflw Application Processing Flow
-```mermaid
-sequenceDiagram
-    participant User
-    participant imgflw as imgflw<br/>(Application)
-    participant OpenAI_Embed as OpenAI<br/>Embedding API
-    participant OpenAI_TextGen as OpenAI<br/>Text Generation API
-    participant Chroma as Chroma<br/>Vector Store
-    participant FaceEditor as Image Processing<br/>Components
-
-    User->>imgflw: 1. Input request
-    imgflw->>OpenAI_Embed: 2. Convert request to embedding
-    imgflw->>Chroma: 3. Search in Chroma
-    alt Similar request exists in Chroma
-        Chroma-->>imgflw: 4a. Retrieve corresponding workflow definition (JSON)
-    else No similar request in Chroma
-        imgflw->>OpenAI_TextGen: 4b. Generate new workflow definition (JSON)
-    end
-    imgflw->>FaceEditor: 5. Process image using workflow definition
-```
-
 ## License
 This software is released under the MIT License, see [LICENSE](./LICENSE).
 
@@ -84,3 +86,6 @@ This application has been developed with the support of several outstanding soft
 - [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)
 - [OpenCV](https://opencv.org/)
 - [Pillow](https://python-pillow.org/)
+
+#### User Interface
+- [Gradio](https://www.gradio.app/)

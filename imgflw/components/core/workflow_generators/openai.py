@@ -1,4 +1,5 @@
 import os
+from string import Template
 
 from openai import OpenAI
 
@@ -30,9 +31,9 @@ class OpenAIWorkflowGenerator(WorkflowGenerator):
 
     def get_system_message(self) -> str:
         if not self.system_message:
-            instruction = self.read_file("generate-instruction.txt")
+            instruction = Template(self.read_file("generate-instruction.txt"))
             workflow_spec = self.read_file("workflow.yml")
-            system_message = instruction.format(workflow_spec=workflow_spec)
+            system_message = instruction.substitute(workflow_spec=workflow_spec)
             self.system_message = {"role": "system", "content": system_message}
         return self.system_message
 
