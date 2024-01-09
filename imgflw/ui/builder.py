@@ -254,7 +254,7 @@ class UIBuilder:
         )
 
     def build(self) -> gr.Blocks:
-        with gr.Blocks(title="ImageFlow") as blocks:
+        with gr.Blocks(title="imgflw") as blocks:
             with gr.Tab("Canvas"):
                 with gr.Row():
                     with gr.Column():
