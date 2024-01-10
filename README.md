@@ -7,7 +7,7 @@ A demo application for image editing using LLM.
 ```mermaid
 sequenceDiagram
     participant User
-    participant imgflw as imgflw<br/>(Application)
+    participant imgflw as User Interface
     participant OpenAI_Embed as OpenAI<br/>Embedding API
     participant OpenAI_TextGen as OpenAI<br/>Text Generation API
     participant Chroma as Chroma<br/>Vector Store
@@ -73,10 +73,10 @@ This software is released under the MIT License, see [LICENSE](./LICENSE).
 This application has been developed with the support of several outstanding software resources:
 
 #### Workflow Definition Generation
-- [OpenAI (Text generation)](https://platform.openai.com/docs/guides/text-generation/text-generation-models)
+- [OpenAI Text generation API](https://platform.openai.com/docs/guides/text-generation/text-generation-models)
 
 #### Workflow Definition Storage
-- [OpenAI (Embeddings)](https://platform.openai.com/docs/guides/embeddings/embeddings)
+- [OpenAI Embeddings API](https://platform.openai.com/docs/guides/embeddings/embeddings)
 - [Chroma](https://docs.trychroma.com/)
 
 #### Image Processing
