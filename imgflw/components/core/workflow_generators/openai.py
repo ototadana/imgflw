@@ -15,15 +15,11 @@ class OpenAIWorkflowGenerator(WorkflowGenerator):
         self.client.api_key = Settings.get("openai_api_key")
 
         response = self.client.chat.completions.create(
+            messages=[self.get_system_message(), {"role": "user", "content": request}],
             model="gpt-3.5-turbo-1106",
             response_format={"type": "json_object"},
-            seed=2048,
-            messages=[self.get_system_message(), {"role": "user", "content": request}],
             temperature=0,
-            max_tokens=256,
-            top_p=0.4,
-            frequency_penalty=0,
-            presence_penalty=0,
+            max_tokens=1024,
         )
 
         content = response.choices[0].message.content
@@ -31,7 +27,7 @@ class OpenAIWorkflowGenerator(WorkflowGenerator):
 
     def get_system_message(self) -> str:
         if not self.system_message:
-            instruction = Template(self.read_file("generate-instruction.txt"))
+            instruction = Template(self.read_file("instruction-for-generation.txt"))
             workflow_spec = self.read_file("workflow.yml")
             system_message = instruction.substitute(workflow_spec=workflow_spec)
             self.system_message = {"role": "system", "content": system_message}
