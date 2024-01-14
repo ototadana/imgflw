@@ -9,12 +9,13 @@ sequenceDiagram
     participant User
     participant imgflw as User Interface
     participant OpenAI_Embed as OpenAI<br/>Embedding API
-    participant OpenAI_TextGen as OpenAI<br/>Text Generation API
     participant Chroma as Chroma<br/>Vector Store
+    participant OpenAI_TextGen as OpenAI<br/>Text Generation API
     participant FaceEditor as Image Processing<br/>Components
 
     User->>imgflw: 1. Input request
     imgflw->>OpenAI_Embed: 2. Convert request to embedding
+    OpenAI_Embed->>imgflw: 
     imgflw->>Chroma: 3. Search in Chroma
     alt Similar request exists in Chroma
         Chroma-->>imgflw: 4a. Retrieve corresponding workflow definition (JSON)
